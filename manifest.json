@@ -1,15 +1,19 @@
 {
   "manifest_version": 3,
   "name": "简练首页",
-  "version": "2.2.3",
-  "description": "液态玻璃新标签页 · 可扩展 Widget 架构 - 搜索框 + 快捷网址 + 历史记录 + 自定义组件",
+  "version": "2.3.0",
+  "description": "液态玻璃新标签页 · 可扩展 Widget 架构 — 搜索 + 快捷网址 + 历史记录 + 时钟 + 天气",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "permissions": ["storage", "history", "geolocation"],
+  "permissions": [
+    "storage",
+    "history",
+    "geolocation"
+  ],
   "host_permissions": [
     "https://geocoding-api.open-meteo.com/",
     "https://api.open-meteo.com/",

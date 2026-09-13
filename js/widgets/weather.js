@@ -222,7 +222,15 @@ Widgets.register({
       const changed = form.mode !== oldEntry.mode
                    || form.city !== oldEntry.city
                    || form.unit !== oldEntry.unit;
-      if (changed) { entry.lat = null; entry.lon = null; }
+      if (changed) {
+        entry.lat = null; entry.lon = null;
+      } else {
+        // 参数未变：显式沿用原坐标，不依赖「form 恰好带着这些字段」
+        entry.lat = entry.lat ?? oldEntry.lat ?? null;
+        entry.lon = entry.lon ?? oldEntry.lon ?? null;
+        entry.cityName = entry.cityName ?? oldEntry.cityName ?? '';
+        entry._geoCity = entry._geoCity ?? oldEntry._geoCity ?? '';
+      }
     }
     return entry;
   },

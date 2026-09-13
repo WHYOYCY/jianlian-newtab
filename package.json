@@ -1,0 +1,13 @@
+{
+  "name": "jianlian-newtab",
+  "version": "2.3.0",
+  "private": true,
+  "description": "液态玻璃风格的新标签页扩展（Chrome / Edge，MV3）",
+  "type": "module",
+  "scripts": {
+    "test": "node --test --test-force-exit \"test/*.test.mjs\"",
+    "icons": "node tools/make-icons.mjs",
+    "zip": "node tools/make-zip.mjs"
+  },
+  "license": "MIT"
+}

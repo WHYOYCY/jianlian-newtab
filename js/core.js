@@ -126,6 +126,13 @@ export const Store = {
     });
   },
 
+  localRemove(key) {
+    return new Promise(resolve => {
+      try { chrome.storage.local.remove(key, () => resolve()); }
+      catch (e) { if (isCtxInvalid(e)) handleContextInvalidated(); resolve(); }
+    });
+  },
+
   localSet(obj) {
     return new Promise((resolve, reject) => {
       try {
@@ -278,6 +285,7 @@ const state = {
   hwRemoved: false,
   widgetsMigrated: false,
   engine: 'baidu',                 // 当前搜索引擎（持久化，用户可选）
+  theme: 'auto',                   // 'auto' | 'light' | 'dark'（持久化）
   editingIndex: -1,
 };
 
@@ -299,6 +307,7 @@ function packData() {
     hwRemoved: state.hwRemoved,
     widgetsMigrated: state.widgetsMigrated,
     engine: state.engine,
+    theme: state.theme,
   };
 }
 
@@ -356,6 +365,7 @@ async function loadSites() {
   state.hwRemoved = !!pick?.hwRemoved;
   state.widgetsMigrated = !!pick?.widgetsMigrated;
   state.engine = Engines[pick?.engine] ? pick.engine : 'baidu';   // 搜索引擎（非法值回退百度）
+  state.theme = ['auto', 'light', 'dark'].includes(pick?.theme) ? pick.theme : 'auto';
   _dataAt = pick?.at || 0;
   let changed = false;
 
@@ -773,6 +783,54 @@ async function initSearch() {
 
 function initToolbar() {
   $('#editBtn').addEventListener('click', () => document.body.classList.toggle('edit-mode'));
+
+  // 主题切换：跟随系统 → 浅色 → 深色 → 跟随系统
+  $('#themeBtn').addEventListener('click', () => {
+    const order = ['auto', 'light', 'dark'];
+    setTheme(order[(order.indexOf(state.theme) + 1) % order.length]);
+  });
+}
+
+// ---------- 主题 ----------
+// 用 <html data-theme="dark|light"> 驱动样式（单一来源，不用把媒体查询整块复制）。
+// 选「跟随系统」时监听系统设置变化，实时切换。
+const THEME_ICONS = {
+  auto:  '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/>',
+  light: '<circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M2 12h2.4M19.6 12H22M4.9 19.1l1.7-1.7M17.4 6.6l1.7-1.7"/>',
+  dark:  '<path d="M20.5 15.2A8.6 8.6 0 1 1 8.8 3.5a6.8 6.8 0 0 0 11.7 11.7z"/>',
+};
+const THEME_LABELS = { auto: '跟随系统', light: '浅色', dark: '深色' };
+
+function systemPrefersDark() {
+  try { return window.matchMedia('(prefers-color-scheme: dark)').matches; } catch { return false; }
+}
+
+// 把当前设置解析成实际主题并写入 DOM（同时维护 localStorage 镜像，供首屏内联脚本使用）
+export function applyTheme() {
+  const resolved = state.theme === 'auto' ? (systemPrefersDark() ? 'dark' : 'light') : state.theme;
+  document.documentElement.dataset.theme = resolved;
+  try { localStorage.setItem('theme', state.theme); } catch { /* 隐私模式等场景忽略 */ }
+
+  const icon = $('#themeIcon');
+  if (icon) icon.innerHTML = THEME_ICONS[state.theme] || THEME_ICONS.auto;
+  const btn = $('#themeBtn');
+  if (btn) btn.title = '主题：' + (THEME_LABELS[state.theme] || '跟随系统') + '（点击切换）';
+}
+
+// 用户切换主题
+export function setTheme(mode) {
+  state.theme = ['auto', 'light', 'dark'].includes(mode) ? mode : 'auto';
+  applyTheme();
+  saveSites();                              // 记住选择
+}
+
+// 系统主题变化（仅「跟随系统」时生效）
+function watchSystemTheme() {
+  try {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if (state.theme === 'auto') applyTheme();
+    });
+  } catch { /* 旧环境不支持 addEventListener，忽略 */ }
 }
 
 function initAddButton() {
@@ -809,6 +867,66 @@ function initKeyboard() {
   });
 }
 
+// 轻提示（底部玻璃胶囊，无按钮）—— 用于导出成功之类的反馈
+let _toastEl = null, _toastTimer = null;
+function toast(msg, ms = 2800) {
+  if (_toastEl) { clearTimeout(_toastTimer); _toastEl.remove(); _toastEl = null; }
+  const t = el('div', 'undo-toast plain');
+  t.appendChild(el('span', '', { text: msg }));
+  document.body.appendChild(t);
+  requestAnimationFrame(() => t.classList.add('show'));
+  _toastEl = t;
+  _toastTimer = setTimeout(() => {
+    t.classList.remove('show');
+    _toastEl = null;
+    setTimeout(() => t.remove(), 300);
+  }, ms);
+}
+
+// ---------- 配置导出 / 导入 ----------
+const pad2 = (n) => String(n).padStart(2, '0');
+
+function exportConfig() {
+  const data = packData();                    // 统一从数据包导出，字段与存储一致
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const d = new Date();
+  const stamp = `${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}`;
+  const a = el('a', '', { href: url, download: `jianlian-newtab-${stamp}.json` });
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast(`已导出 ${state.sites.length} 张卡片与全部设置`);
+}
+
+async function importConfig(file) {
+  if (!file) return;
+  try {
+    const parsed = JSON.parse(await file.text());
+    const sites = Array.isArray(parsed.sites) ? parsed.sites.filter(s => s && typeof s === 'object') : [];
+    if (!sites.length) throw new Error('文件里没有可用的卡片数据');
+
+    const ok = window.confirm(`导入将覆盖当前的 ${state.sites.length} 张卡片与所有设置，确定继续？`);
+    if (!ok) return;
+
+    state.sites = sites;
+    state.bg = typeof parsed.bg === 'string' ? parsed.bg : '';
+    state.hwRemoved = !!parsed.hwRemoved;
+    state.widgetsMigrated = true;              // 导入的是完整配置，不再跑一次性迁移
+    state.engine = Engines[parsed.engine] ? parsed.engine : 'baidu';
+    state.theme = ['auto', 'light', 'dark'].includes(parsed.theme) ? parsed.theme : 'auto';
+    await flushSaveNow();
+
+    Background.apply(state.bg);
+    applyTheme();
+    render();
+    toast(`已导入 ${sites.length} 张卡片`);
+  } catch (e) {
+    notify('import', '<b>导入失败</b>：' + (e.message || '文件格式不正确') + '<br>请选择本扩展导出的 JSON 文件。');
+  }
+}
+
 function initBackground() {
   const renderGrid = () => {
     const grid = $('#bgGrid');
@@ -842,7 +960,17 @@ function initBackground() {
     const url = $('#bgUrl').value.trim();
     await saveBg(url || '');
     Background.apply(url || '');
+    toast(url ? '背景已应用' : '已清除背景');
     $('#bgOverlay2').classList.remove('show');
+  });
+
+  // 配置导出 / 导入
+  $('#btnExport').addEventListener('click', () => exportConfig());
+  $('#btnImport').addEventListener('click', () => $('#importFile').click());
+  $('#importFile').addEventListener('change', async (e) => {
+    const file = e.target.files && e.target.files[0];
+    await importConfig(file);
+    e.target.value = '';                       // 允许重复选同一个文件
   });
 }
 
@@ -855,6 +983,8 @@ export async function initApp() {
   render();
   initSearch();
   initToolbar();
+  applyTheme();
+  watchSystemTheme();
   initAddButton();
   initModal();
   initKeyboard();
