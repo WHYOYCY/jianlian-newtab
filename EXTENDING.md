@@ -12,7 +12,8 @@ D:/file/index/
 ├── newtab.html            # 页面骨架 + 全部液态玻璃 CSS
 ├── newtab.js              # 入口：import core + 各 widget，启动 initApp()
 ├── js/
-│   ├── core.js            # ★ 核心：Store/Engines/Background/LiquidFX/Widgets/Grid/Modal
+│   ├── core.js            # ★ 核心：Store/Data/Engines/Background/LiquidFX/Widgets/Grid/Modal/主题
+│   ├── icons.js           # 图标服务：域名级缓存 + 回退链（各组件共用）
 │   ├── presets.js         # 默认网址 / 预设背景 / 调色板（可自由改）
 │   └── widgets/
 │       ├── shortcut.js    # 网址快捷卡片（图标回退链 + 成功缓存/失败重试）
@@ -59,6 +60,8 @@ storage.local `data` 数据包  ──load──►  state.sites[]  ──render
 | **内容** | `widgets/*.js → render()` | 只填充卡片内部 DOM，不碰外壳 |
 | **编辑** | `core.js → Modal` | 按 `widget.editorFields` 动态生成表单 |
 | **存储** | `core.js → Store` | `storage.local`（主）+ `storage.sync`（镜像）封装 |
+| **图标** | `icons.js → getIcon()` | 域名级图标缓存与抓取，各组件共用 |
+| **主题** | `core.js → applyTheme()` | 浅色 / 深色 / 跟随系统，用 `data-theme` 属性驱动 CSS |
 
 > **关键设计**：widget 只负责"画里面"，外壳（液态玻璃、动画、按钮）由核心统一处理。所以新增组件**自动继承**整套液态玻璃视觉，不用重写 CSS。
 
@@ -245,7 +248,22 @@ widget 的 `render` 里可以自由 `fetch`，但要注意：
 
 1. **跨域**：在 `manifest.json` 的 `host_permissions` 加上数据源域名，例如本项目加的 `https://api.open-meteo.com/`
 2. **缓存**：隔一段时间才变的数据（天气、股票、新闻……）应缓存，避免每次渲染都请求
-3. **取消**：`fetch` 返回后检查 `body.isConnected`，卡片已移除就别动 DOM
+3. **图标**：需要网站图标时**别自己发请求**，直接用共享的图标服务：
+
+   ```js
+   import { getIcon } from '../icons.js';
+   const src = await getIcon('github.com');   // 命中缓存，或自动走候选链抓取；失败返回 null
+   ```
+
+   同一次页面会话内同域名只抓一次，结果写入 `storage.local`，下次打开零网络请求；
+   因此快捷卡片与历史列表能复用同一份缓存。
+4. **主题**：样式请用核心提供的 CSS 变量（`--text` / `--sub` / `--glass-bg` / `--glass-border`…），
+   它们会随主题自动变化；确实需要单独调暗色时用属性选择器：
+
+   ```css
+   :root[data-theme="dark"] .your-class { background: rgba(255,255,255,0.08); }
+   ```
+5. **取消**：`fetch` 返回后检查 `body.isConnected`，卡片已移除就别动 DOM
 
 > ⚠️ **缓存请存 `chrome.storage.local`，不要塞进 `entry`**。
 >
@@ -312,7 +330,19 @@ widget 的 `render` 里可以自由 `fetch`，但要注意：
 2. 右上角开启「开发者模式」
 3. 「加载已解压的扩展程序」→ 选 `D:/file/index` 目录
 4. 打开新标签页即可看到效果
-5. 改代码后回到 `chrome://extensions` 点扩展的「刷新」按钮，再开新标签页
+5. 改代码后回到 `chrome://extensions` 点扩展的「刷新」按钮（已打开的标签页会自动重载）
+
+### 跑测试
+
+新增组件建议配一个测试文件（不需要浏览器）：
+
+```bash
+npm test                                     # 跑全部（35 个用例）
+node --test test/widgets.test.mjs            # 只跑某个文件
+```
+
+模拟环境在 `test/helpers.mjs`（chrome 存储、DOM、图片加载、HTTP 缓存都有），
+写法参考 `test/widgets.test.mjs`：`installEnv()` 建环境 → 直接调 `Widgets.get('xxx').render(...)` 验证输出。
 
 ### 常见问题
 
