@@ -1,0 +1,207 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" width="1280" height="800"
+     font-family="'Segoe UI',-apple-system,'Microsoft YaHei',Roboto,system-ui,sans-serif">
+  <title>简练首页 · 新标签页效果示意图（浅色壁纸）</title>
+  <defs>
+    <!-- 壁纸：天空 + 光晕 + 山峦 -->
+    <linearGradient id="sky" x1="0" y1="0" x2="0.55" y2="1">
+      <stop offset="0" stop-color="#38558c"/>
+      <stop offset="0.45" stop-color="#6a7cb1"/>
+      <stop offset="1" stop-color="#b09ec6"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.76" cy="0.14" r="0.55">
+      <stop offset="0" stop-color="#ffe7bb" stop-opacity="0.80"/>
+      <stop offset="1" stop-color="#ffe7bb" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="mt1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2c4169" stop-opacity="0.50"/>
+      <stop offset="1" stop-color="#1d2b49" stop-opacity="0.78"/>
+    </linearGradient>
+    <linearGradient id="mt2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#213052" stop-opacity="0.82"/>
+      <stop offset="1" stop-color="#131c31" stop-opacity="0.94"/>
+    </linearGradient>
+
+    <!-- 液态玻璃卡片：多段白，模拟斜向高光 + 边缘反光 -->
+    <linearGradient id="gfill" x1="0" y1="0" x2="0.72" y2="1">
+      <stop offset="0"    stop-color="#ffffff" stop-opacity="0.60"/>
+      <stop offset="0.38" stop-color="#ffffff" stop-opacity="0.37"/>
+      <stop offset="0.62" stop-color="#ffffff" stop-opacity="0.30"/>
+      <stop offset="1"    stop-color="#ffffff" stop-opacity="0.46"/>
+    </linearGradient>
+    <!-- 图标底板：左上高光 + 右下加深（模拟品牌色渐变） -->
+    <linearGradient id="ish" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0"   stop-color="#ffffff" stop-opacity="0.20"/>
+      <stop offset="0.45" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="1"   stop-color="#000000" stop-opacity="0.32"/>
+    </linearGradient>
+
+    <filter id="sh" x="-25%" y="-35%" width="150%" height="180%">
+      <feDropShadow dx="0" dy="3" stdDeviation="5"  flood-color="#0a1220" flood-opacity="0.18"/>
+      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#0a1220" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+
+  <style>
+    .glass { fill: url(#gfill); stroke: #ffffff; stroke-opacity: 0.55; stroke-width: 1; }
+    .pill  { fill: url(#gfill); stroke: #ffffff; stroke-opacity: 0.50; stroke-width: 1; }
+    .card  { fill: url(#gfill); stroke: #ffffff; stroke-opacity: 0.55; stroke-width: 1; }
+    .w   { fill: #ffffff; }
+    .w85 { fill: rgba(255,255,255,0.86); }
+    .w70 { fill: rgba(255,255,255,0.70); }
+    .w55 { fill: rgba(255,255,255,0.55); }
+    .f34 { font-size: 34px; font-weight: 700; }
+    .f28 { font-size: 28px; font-weight: 700; }
+    .f15 { font-size: 15px; }
+    .f13 { font-size: 13px; }
+    .f12 { font-size: 12px; }
+    .f11 { font-size: 11px; }
+    .f10 { font-size: 10px; }
+    .b6  { font-weight: 600; }
+    .b7  { font-weight: 700; }
+    .mid { text-anchor: middle; }
+    .end { text-anchor: end; }
+  </style>
+
+  <!-- ================= 壁纸 ================= -->
+  <rect width="1280" height="800" fill="url(#sky)"/>
+  <rect width="1280" height="800" fill="url(#glow)"/>
+  <path d="M0 556 L170 424 L318 520 L468 396 L640 542 L812 418 L986 528 L1148 438 L1280 518 L1280 800 L0 800 Z" fill="url(#mt1)"/>
+  <path d="M0 664 L206 556 L366 632 L566 516 L764 642 L946 552 L1124 654 L1280 586 L1280 800 L0 800 Z" fill="url(#mt2)"/>
+  <!-- 背景遮罩（body.has-bg 的 25% 压暗，让白色玻璃更突出）-->
+  <rect width="1280" height="800" fill="#000000" opacity="0.26"/>
+  <!-- 漂浮光斑（.blob）-->
+  <circle cx="196" cy="170" r="240" fill="#6bc9ff" opacity="0.15"/>
+  <circle cx="1082" cy="702" r="268" fill="#b388ff" opacity="0.13"/>
+  <circle cx="648" cy="424" r="300" fill="#ff8a80" opacity="0.09"/>
+
+  <!-- ================= 右上角工具栏 ================= -->
+  <g filter="url(#sh)">
+    <circle cx="1202" cy="34" r="18" class="pill"/>
+    <circle cx="1246" cy="34" r="18" class="pill"/>
+  </g>
+  <!-- 背景图标 -->
+  <g fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.92">
+    <rect x="1195.5" y="27.5" width="13" height="13" rx="3"/>
+    <circle cx="1199.5" cy="31.5" r="1.1" fill="#ffffff" stroke="none"/>
+    <path d="M1196 38.6 l3.4-4 3 3 2-2 3 3"/>
+  </g>
+  <!-- 编辑图标 -->
+  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+        transform="translate(1239.5,29.5) scale(0.5)" fill="none" stroke="#ffffff"
+        stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
+
+  <!-- ================= 搜索引擎切换 ================= -->
+  <g>
+    <rect x="539" y="96" width="74" height="28" rx="14" class="pill"/>
+    <rect x="621" y="96" width="56" height="28" rx="14" class="pill"/>
+    <rect x="685" y="96" width="56" height="28" rx="14" fill="#0071e3" stroke="#0071e3" stroke-width="1"/>
+  </g>
+  <g class="f13">
+    <text x="576" y="115" class="mid w85">Google</text>
+    <text x="649" y="115" class="mid w85">Bing</text>
+    <text x="713" y="115" class="mid w b6">百度</text>
+  </g>
+
+  <!-- ================= 搜索框 ================= -->
+  <g filter="url(#sh)">
+    <rect x="320" y="140" width="640" height="56" rx="28" class="glass"/>
+  </g>
+  <!-- 光斑跟随的静态暗示 -->
+  <rect x="320" y="140" width="640" height="56" rx="28" fill="url(#glow)" opacity="0.06"/>
+  <text x="348" y="174" class="f15 w70">输入搜索内容…</text>
+  <circle cx="932" cy="168" r="20" fill="#0071e3"/>
+  <g stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" fill="none">
+    <circle cx="928.6" cy="164.4" r="6"/>
+    <path d="M933 168.8 L938.4 174.2"/>
+  </g>
+
+  <!-- ================= 卡片网格 ================= -->
+  <!-- 历史记录 3×2 -->
+  <g filter="url(#sh)">
+    <rect x="312" y="250" width="388" height="222" rx="18" class="card"/>
+  </g>
+  <g stroke="#ffffff" stroke-width="1.4" fill="none" opacity="0.80" stroke-linecap="round">
+    <circle cx="334.6" cy="272.6" r="5.6"/>
+    <path d="M334.6 269.4 v3.4 l2.2 1.5"/>
+  </g>
+  <text x="347" y="277" class="f12 b6 w85">历史记录</text>
+
+  <g class="f12">
+    <rect x="328" y="297" width="14" height="14" rx="4" fill="#24292f"/><text x="350" y="308" class="w85">GitHub</text><text x="684" y="308" class="f10 w55 end">14:32</text>
+    <rect x="328" y="323" width="14" height="14" rx="4" fill="#0084ff"/><text x="350" y="334" class="w85">知乎 - 有问题，就会有答案</text><text x="684" y="334" class="f10 w55 end">14:20</text>
+    <rect x="328" y="349" width="14" height="14" rx="4" fill="#fb7299"/><text x="350" y="360" class="w85">哔哩哔哩 · 干杯~</text><text x="684" y="360" class="f10 w55 end">13:58</text>
+    <rect x="328" y="375" width="14" height="14" rx="4" fill="#000000"/><text x="350" y="386" class="w85">MDN Web Docs</text><text x="684" y="386" class="f10 w55 end">13:41</text>
+    <rect x="328" y="401" width="14" height="14" rx="4" fill="#1e80ff"/><text x="350" y="412" class="w85">掘金 - 代码不止，掘金不停</text><text x="684" y="412" class="f10 w55 end">11:26</text>
+    <rect x="328" y="427" width="14" height="14" rx="4" fill="#f48024"/><text x="350" y="438" class="w85">Stack Overflow</text><text x="684" y="438" class="f10 w55 end">10:05</text>
+  </g>
+
+  <!-- 时钟 2×1 -->
+  <g filter="url(#sh)">
+    <rect x="714" y="250" width="254" height="104" rx="18" class="card"/>
+  </g>
+  <text x="841" y="304" class="f34 mid w">14:28</text>
+  <text x="841" y="325" class="f11 mid w70">2025年9月13日 · 周六</text>
+
+  <!-- 天气 2×1 -->
+  <g filter="url(#sh)">
+    <rect x="714" y="368" width="254" height="104" rx="18" class="card"/>
+  </g>
+  <!-- 晴天图标 -->
+  <g transform="translate(753,420)">
+    <circle r="9" fill="#ffd666"/>
+    <g stroke="#ffd666" stroke-width="2" stroke-linecap="round">
+      <path d="M0 -14 V-17.5"/><path d="M0 14 V17.5"/>
+      <path d="M-14 0 H-17.5"/><path d="M14 0 H17.5"/>
+      <path d="M-9.9 -9.9 L-12.4 -12.4"/><path d="M9.9 9.9 L12.4 12.4"/>
+      <path d="M9.9 -9.9 L12.4 -12.4"/><path d="M-9.9 9.9 L-12.4 12.4"/>
+    </g>
+  </g>
+  <text x="774" y="431" class="f28 w">23</text>
+  <text x="808" y="431" class="f13 w70">°C</text>
+  <text x="845" y="414" class="f13 b6 w">北京 · 北京市</text>
+  <text x="845" y="433" class="f11 w70">晴 · 8 km/h</text>
+
+  <!-- 快捷网址：第一排 -->
+  <g filter="url(#sh)">
+    <rect x="312" y="486" width="120" height="104" rx="18" class="card"/>
+    <rect x="446" y="486" width="120" height="104" rx="18" class="card"/>
+    <rect x="580" y="486" width="120" height="104" rx="18" class="card"/>
+    <rect x="714" y="486" width="120" height="104" rx="18" class="card"/>
+    <rect x="848" y="486" width="120" height="104" rx="18" class="card"/>
+  </g>
+  <g filter="url(#sh)">
+    <rect x="352" y="502" width="40" height="40" rx="9" fill="#24292f"/><rect x="352" y="502" width="40" height="40" rx="9" fill="url(#ish)"/>
+    <rect x="486" y="502" width="40" height="40" rx="9" fill="#ff0000"/><rect x="486" y="502" width="40" height="40" rx="9" fill="url(#ish)"/>
+    <rect x="620" y="502" width="40" height="40" rx="9" fill="#fb7299"/><rect x="620" y="502" width="40" height="40" rx="9" fill="url(#ish)"/>
+    <rect x="754" y="502" width="40" height="40" rx="9" fill="#0084ff"/><rect x="754" y="502" width="40" height="40" rx="9" fill="url(#ish)"/>
+    <rect x="888" y="502" width="40" height="40" rx="9" fill="#e6162d"/><rect x="888" y="502" width="40" height="40" rx="9" fill="url(#ish)"/>
+  </g>
+  <g class="f13 b7 mid w">
+    <text x="372" y="529">G</text><text x="506" y="529">Y</text><text x="640" y="529">B</text><text x="774" y="529">知</text><text x="908" y="529">微</text>
+  </g>
+  <g class="f12 mid w85">
+    <text x="372" y="561">GitHub</text><text x="506" y="561">YouTube</text><text x="640" y="561">Bilibili</text><text x="774" y="561">知乎</text><text x="908" y="561">微博</text>
+  </g>
+
+  <!-- 快捷网址：第二排 -->
+  <g filter="url(#sh)">
+    <rect x="312" y="604" width="120" height="104" rx="18" class="card"/>
+    <rect x="446" y="604" width="120" height="104" rx="18" class="card"/>
+    <rect x="580" y="604" width="120" height="104" rx="18" class="card"/>
+    <rect x="714" y="604" width="120" height="104" rx="18" class="card"/>
+    <rect x="848" y="604" width="120" height="104" rx="18" class="card"/>
+  </g>
+  <g filter="url(#sh)">
+    <rect x="352" y="620" width="40" height="40" rx="9" fill="#ff6a00"/><rect x="352" y="620" width="40" height="40" rx="9" fill="url(#ish)"/>
+    <rect x="486" y="620" width="40" height="40" rx="9" fill="#e1251b"/><rect x="486" y="620" width="40" height="40" rx="9" fill="url(#ish)"/>
+    <rect x="620" y="620" width="40" height="40" rx="9" fill="#007722"/><rect x="620" y="620" width="40" height="40" rx="9" fill="url(#ish)"/>
+    <rect x="754" y="620" width="40" height="40" rx="9" fill="#10a37f"/><rect x="754" y="620" width="40" height="40" rx="9" fill="url(#ish)"/>
+    <rect x="888" y="620" width="40" height="40" rx="9" fill="#000000"/><rect x="888" y="620" width="40" height="40" rx="9" fill="url(#ish)"/>
+  </g>
+  <g class="f13 b7 mid w">
+    <text x="372" y="647">淘</text><text x="506" y="647">京</text><text x="640" y="647">豆</text><text x="774" y="647">A</text><text x="908" y="647">M</text>
+  </g>
+  <g class="f12 mid w85">
+    <text x="372" y="679">淘宝</text><text x="506" y="679">京东</text><text x="640" y="679">豆瓣</text><text x="774" y="679">ChatGPT</text><text x="908" y="679">MDN</text>
+  </g>
+</svg>

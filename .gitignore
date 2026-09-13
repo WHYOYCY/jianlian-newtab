@@ -1,0 +1,22 @@
+# 依赖与构建产物
+node_modules/
+dist/
+*.zip
+
+# 重构前的原始文件备份（仅本地留档，不入库）
+.backup/
+
+# 临时/调试文件
+tmpic/
+tmpchk/
+smoke*.mjs
+*-out.txt
+out.txt
+*.log
+
+# 编辑器与系统文件
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
