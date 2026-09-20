@@ -18,9 +18,10 @@ function fmtTime(ts) {
 }
 
 function buildContent(card, entry) {
-  const header = el('div', 'widget-header', {
-    html: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>' + (entry.name || '历史记录') + '</span>'
-  });
+  const header = el('div', 'widget-header');
+  // 图标是静态 SVG（可以走 innerHTML），标题是用户可编辑文本 → 单独用 textContent 追加
+  header.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+  header.appendChild(el('span', '', { text: entry.name || '历史记录' }));
   const list = el('div', 'history-list');
   card.appendChild(header);
   card.appendChild(list);
@@ -103,7 +104,7 @@ Widgets.register({
 
   // 有 editorFields 才会出现在「添加」菜单里（删除后可恢复）
   editorFields: [
-    { key: 'name',  label: '标题',     type: 'text',   placeholder: '历史记录', default: '历史记录', required: true },
+    { key: 'name',  label: '标题',     type: 'text',   placeholder: '历史记录', default: '历史记录', maxlength: 16, required: true },
     { key: 'limit', label: '显示条数', type: 'select', default: 12,
       options: [
         { v: 8,  t: '8 条' },

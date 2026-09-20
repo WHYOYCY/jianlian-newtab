@@ -24,6 +24,7 @@ export function el(tag, cls, props = {}) {
   if (cls) n.className = cls;
   for (const k in props) {
     if (k === 'text')      n.textContent = props[k];
+    // html 只用于写死的静态标记（图标 SVG 等）；用户可编辑的内容一律走 text
     else if (k === 'html') n.innerHTML = props[k];
     else if (k === 'style' && typeof props[k] === 'object') Object.assign(n.style, props[k]);
     else if (k.startsWith('on') && typeof props[k] === 'function') n.addEventListener(k.slice(2).toLowerCase(), props[k]);
@@ -33,7 +34,9 @@ export function el(tag, cls, props = {}) {
   return n;
 }
 
-export function getDomain(url) { try { return new URL(url).hostname; } catch { return ''; } }
+// 取 host 而不是 hostname：保留端口号，这样 localhost:3000 与 localhost:8080
+// 不会共用同一份图标缓存，也不会把图标请求打到错误的地址上。
+export function getDomain(url) { try { return new URL(url).host; } catch { return ''; } }
 
 export function hexA(hex, a) {
   const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
@@ -381,7 +384,9 @@ async function loadSites() {
       if (!state.sites.some(s => s.type === type)) state.sites.push(def);
     };
     pushIfMissing('clock',   { type: 'clock', name: '时钟', fmt24: true, showSec: false, w: 2, h: 1 });
-    pushIfMissing('weather', { type: 'weather', name: '天气', city: '北京', unit: 'c', w: 2, h: 1 });
+    // 天气不预填城市：定位失败时按文档提示「点击重试」，
+    // 而不是在用户没配置过城市的情况下静默去查北京。
+    pushIfMissing('weather', { type: 'weather', name: '天气', unit: 'c', w: 2, h: 1 });
     state.widgetsMigrated = true;
     changed = true;
   }
@@ -784,10 +789,23 @@ async function initSearch() {
 function initToolbar() {
   $('#editBtn').addEventListener('click', () => document.body.classList.toggle('edit-mode'));
 
-  // 主题切换：跟随系统 → 浅色 → 深色 → 跟随系统
+  // 主题按钮 = 白天/黑夜 互换，保证每次点击外观都真的变。
+  // 旧版是「跟随系统 → 浅色 → 深色」三态循环：系统本来就是浅色时，
+  // 第一次点击（auto → light）解析结果与当前完全相同，看起来就像按钮坏了。
+  // 「跟随系统」现在放在设置弹窗里选（#themeSeg）。
   $('#themeBtn').addEventListener('click', () => {
-    const order = ['auto', 'light', 'dark'];
-    setTheme(order[(order.indexOf(state.theme) + 1) % order.length]);
+    const shownDark = document.documentElement.dataset.theme === 'dark';
+    setTheme(shownDark ? 'light' : 'dark');
+  });
+}
+
+// 设置弹窗里的主题选择（跟随系统 / 浅色 / 深色）
+function initThemeSeg() {
+  $$('#themeSeg button').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      setTheme(btn.dataset.themeMode);
+    });
   });
 }
 
@@ -799,8 +817,6 @@ const THEME_ICONS = {
   light: '<circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M2 12h2.4M19.6 12H22M4.9 19.1l1.7-1.7M17.4 6.6l1.7-1.7"/>',
   dark:  '<path d="M20.5 15.2A8.6 8.6 0 1 1 8.8 3.5a6.8 6.8 0 0 0 11.7 11.7z"/>',
 };
-const THEME_LABELS = { auto: '跟随系统', light: '浅色', dark: '深色' };
-
 function systemPrefersDark() {
   try { return window.matchMedia('(prefers-color-scheme: dark)').matches; } catch { return false; }
 }
@@ -814,7 +830,15 @@ export function applyTheme() {
   const icon = $('#themeIcon');
   if (icon) icon.innerHTML = THEME_ICONS[state.theme] || THEME_ICONS.auto;
   const btn = $('#themeBtn');
-  if (btn) btn.title = '主题：' + (THEME_LABELS[state.theme] || '跟随系统') + '（点击切换）';
+  if (btn) {
+    // 标题里写清「现在是什么」和「点一下会变成什么」，免得用户以为按钮没反应
+    const shown = resolved === 'dark' ? '深色' : '浅色';
+    const next  = resolved === 'dark' ? '浅色' : '深色';
+    const suffix = state.theme === 'auto' ? '（跟随系统）' : '';
+    btn.title = `主题：${shown}${suffix} · 点击切换为${next}`;
+  }
+  // 设置弹窗里的主题分段控件（跟随系统 / 浅色 / 深色）
+  $$('#themeSeg button').forEach(b => b.classList.toggle('active', b.dataset.themeMode === state.theme));
 }
 
 // 用户切换主题
@@ -989,6 +1013,7 @@ export async function initApp() {
   initModal();
   initKeyboard();
   initBackground();
+  initThemeSeg();
   // 切走/关闭页面前把合并中的保存落盘，避免 debounce 窗口内丢改动
   window.addEventListener('pagehide', flushSaveNow);
   document.addEventListener('visibilitychange', () => { if (document.hidden) flushSaveNow(); });

@@ -38,14 +38,23 @@ function show(body, entry, cur) {
   const unitSym = entry.unit === 'f' ? '°F' : '°C';
   const windSym = entry.unit === 'f' ? 'mph' : 'km/h';
   body.innerHTML = '';
-  body.appendChild(el('div', 'weather-main', {
-    html: `<span class="weather-icon">${d.icon}</span>`
-          + `<span class="weather-temp">${temp}<span class="weather-unit">${unitSym}</span></span>`
+
+  // 一律用 textContent 落文本，不拼 innerHTML：
+  // 城市名来自用户输入（编辑表单或导入的 JSON），拼进去会被当成标记解析。
+  const main = el('div', 'weather-main');
+  main.appendChild(el('span', 'weather-icon', { text: d.icon }));
+  const tempEl = el('span', 'weather-temp', { text: String(temp) });
+  tempEl.appendChild(el('span', 'weather-unit', { text: unitSym }));
+  main.appendChild(tempEl);
+
+  const info = el('div', 'weather-info');
+  info.appendChild(el('div', 'weather-city', { text: cityLabel(entry) }));
+  info.appendChild(el('div', 'weather-desc', {
+    text: `${d.text} · ${Math.round(cur.wind_speed_10m)} ${windSym}`
   }));
-  body.appendChild(el('div', 'weather-info', {
-    html: `<div class="weather-city">${cityLabel(entry)}</div>`
-          + `<div class="weather-desc">${d.text} · ${Math.round(cur.wind_speed_10m)} ${windSym}</div>`
-  }));
+
+  body.appendChild(main);
+  body.appendChild(info);
 }
 
 function showMsg(body, msg) {
@@ -113,7 +122,8 @@ async function readWeatherCache(entry) {
 }
 
 function writeWeatherCache(entry, data) {
-  try { Store.localSet({ [cacheKey(entry)]: { data, at: Date.now() } }); } catch {}
+  // 同 icons.js：localSet 是 Promise，失败走 reject，需显式 catch
+  Store.localSet({ [cacheKey(entry)]: { data, at: Date.now() } }).catch(() => { /* 缓存写失败不影响显示 */ });
 }
 
 // 确定经纬度：auto 定位（失败且有手动城市则降级），manual 按城市解析
@@ -192,7 +202,8 @@ Widgets.register({
 
   match(entry) { return entry.type === 'weather'; },
 
-  createEntry() { return { type: 'weather', mode: 'auto', city: '北京', unit: 'c', w: 2, h: 1 }; },
+  // 不预填 city：自动定位失败且用户没配置过城市时，应明确提示重试（见 README）
+  createEntry() { return { type: 'weather', mode: 'auto', unit: 'c', w: 2, h: 1 }; },
 
   render(body, entry, ctx) {
     body.classList.add('weather-body');
@@ -208,7 +219,7 @@ Widgets.register({
     { key: 'mode', label: '位置', type: 'segmented', default: 'auto',
       options: [{ v: 'auto', t: '📍 自动定位' }, { v: 'manual', t: '✍️ 手动城市' }] },
     { key: 'city', label: '城市', type: 'text', placeholder: '如：北京 / Shanghai', required: true, default: '北京',
-      visible: form => form.mode === 'manual' },   // 自动定位模式下隐藏
+      maxlength: 32, visible: form => form.mode === 'manual' },   // 自动定位模式下隐藏
     { key: 'unit', label: '温度单位', type: 'segmented', default: 'c',
       options: [{ v: 'c', t: '°C' }, { v: 'f', t: '°F' }] },
   ],

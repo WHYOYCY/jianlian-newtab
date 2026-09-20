@@ -9,7 +9,8 @@
 export const defaultSites = [
   { type: 'history',  name: '历史记录', w: 3, h: 2 },
   { type: 'clock',    name: '时钟',    fmt24: true, showSec: false, w: 2, h: 1 },
-  { type: 'weather',  name: '天气',    city: '北京', unit: 'c', w: 2, h: 1 },
+  // 天气默认「自动定位」，不预填城市（定位被拒时由用户决定是否改用手动城市）
+  { type: 'weather',  name: '天气',    unit: 'c', w: 2, h: 1 },
   { type: 'shortcut', name: 'GitHub',    url: 'https://github.com',          color: '#24292f', label: 'G',  w: 1 },
   { type: 'shortcut', name: 'YouTube',   url: 'https://youtube.com',         color: '#ff0000', label: 'Y',  w: 1 },
   { type: 'shortcut', name: 'Bilibili',  url: 'https://bilibili.com',        color: '#fb7299', label: 'B',  w: 1 },

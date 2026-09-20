@@ -102,3 +102,22 @@ test('共享缓存：history 与 shortcut 用同一份数据，同域名只抓�
   assert.deepEqual(results, [results[0], results[0], results[0]]);
   assert.equal(env.requestLog.length, n, '历史列表不应产生额外请求（共享缓存）');
 });
+
+test('缓存写入失败：不影响图标返回，也不产生未处理的 Promise 错误', async () => {
+  const d = D(8);
+  // localStorage 不可写（隐私模式 / 配额满）——Store.localSet 会 reject
+  installEnv({ failLocal: true, available: [`https://${d}/favicon.ico`] });
+  const { getIcon } = await import('../js/icons.js');
+
+  const rejections = [];
+  const onRej = (e) => rejections.push(e);
+  process.on('unhandledRejection', onRej);
+  try {
+    const src = await getIcon(d);
+    assert.equal(src, `https://${d}/favicon.ico`, '缓存写失败也应正常返回图标地址');
+    await wait(50);                       // 给潜在的 rejection 一个触发窗口
+  } finally {
+    process.off('unhandledRejection', onRej);
+  }
+  assert.equal(rejections.length, 0, '缓存写入失败不应冒泡为未处理的 Promise 错误');
+});

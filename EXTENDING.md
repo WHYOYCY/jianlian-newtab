@@ -337,7 +337,7 @@ widget 的 `render` 里可以自由 `fetch`，但要注意：
 新增组件建议配一个测试文件（不需要浏览器）：
 
 ```bash
-npm test                                     # 跑全部（35 个用例）
+npm test                                     # 跑全部（42 个用例）
 node --test test/widgets.test.mjs            # 只跑某个文件
 ```
 

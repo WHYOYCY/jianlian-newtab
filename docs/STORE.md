@@ -11,7 +11,7 @@
 | **简短说明**（132 字符内） | 液态玻璃风格的新标签页：多引擎搜索、快捷网址（图标自动获取）、历史记录、时钟、天气。原生 ES Module，可自由扩展组件。 |
 | **类别** | 生产力工具（Productivity） |
 | **语言** | 中文（简体）；可另加英文 |
-| **版本** | 2.3.0 |
+| **版本** | 2.3.1 |
 | **主页 / 支持网址** | https://github.com/WHYOYCY/jianlian-newtab |
 
 **详细说明**（可直接粘贴）：
@@ -21,7 +21,8 @@
 
 ▍液态玻璃视觉
 卡片与搜索框采用多层内阴影 + 边缘反光模拟玻璃厚度，鼠标划过时卡片会有跟随光斑与轻微 3D 倾斜；
-背景有三个缓慢漂浮的光晕。支持浅色 / 深色 / 跟随系统三种主题（右上角一键切换，选择会被记住）。
+背景有三个缓慢漂浮的光晕。支持浅色 / 深色 / 跟随系统三种主题
+（右上角按钮一键切换白天黑夜，「跟随系统」在设置里选，选择会被记住）。
 
 ▍搜索
 Google / Bing / 百度 一键切换（会记住上次选择），回车即搜。
@@ -146,9 +147,8 @@ js/core.js  js/icons.js  js/presets.js  js/widgets/*.js
 icons/icon16.png  icons/icon32.png  icons/icon48.png  icons/icon128.png
 ```
 
-打包命令（在项目根目录）：
+打包命令（在项目根目录，会自动按 `manifest.json` 的版本号命名）：
 
 ```bash
-zip -r jianlian-newtab-2.3.0.zip manifest.json newtab.html newtab.js js icons \
-  -x "js/*.map" -x "*.DS_Store"
+npm run zip        # 产物：dist/jianlian-newtab-<版本>.zip
 ```

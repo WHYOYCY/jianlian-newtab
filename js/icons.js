@@ -43,7 +43,9 @@ export async function readCachedIcon(domain) {
 }
 
 function writeCachedIcon(domain, src) {
-  try { Store.localSet({ [PREFIX + domain]: { src, at: Date.now() } }); } catch { /* 缓存写失败不影响显示 */ }
+  // localSet 返回 Promise：失败只 reject（同步 try/catch 抓不到），必须挂 catch，
+  // 否则存储不可用时会抛未处理的 Promise 错误
+  Store.localSet({ [PREFIX + domain]: { src, at: Date.now() } }).catch(() => { /* 缓存写失败不影响显示 */ });
 }
 
 // 让某域名的缓存失效（图标地址真的挂了时调用），下次 getIcon 会重新抓取

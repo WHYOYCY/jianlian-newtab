@@ -120,3 +120,62 @@ test('history：无历史时的空状态', () => {
   const list = body.children.find(c => c.classList.contains('history-list'));
   assert.match(list.innerHTML, /暂无历史记录/);
 });
+
+test('getDomain：保留端口号，不同端口不共用图标缓存', () => {
+  assert.equal(core.getDomain('https://github.com/a'), 'github.com');
+  assert.equal(core.getDomain('http://localhost:3000/x'), 'localhost:3000');
+  assert.equal(core.getDomain('https://example.com:8443/'), 'example.com:8443');
+  assert.equal(core.getDomain('https://example.com:443/'), 'example.com', '默认端口应被规范化掉');
+  assert.equal(core.getDomain('不是网址'), '');
+});
+
+test('weather：默认配置不预填城市（定位失败不会被静默换成北京）', async () => {
+  const { defaultSites } = await import('../js/presets.js');
+  const entry = Widgets.get('weather').createEntry();
+  assert.equal(entry.mode, 'auto');
+  assert.equal(entry.city, undefined, 'createEntry 不应带默认城市');
+  const preset = defaultSites.find(s => s.type === 'weather');
+  assert.ok(preset, '默认布局应含天气卡片');
+  assert.equal(preset.city, undefined, '预设布局不应带默认城市');
+});
+
+test('weather：定位失败且用户没配置城市 → 提示重试，且不写入坐标', async () => {
+  installEnv();                             // 模拟 navigator.geolocation 不可用
+  const w = Widgets.get('weather');
+  const entry = w.createEntry();
+  const body = makeEl();
+  w.render(body, entry, { entry, index: 0, save: async () => {}, editMode: () => false, render() {} });
+
+  const ok = await waitFor(() => body.children.some(c => /定位失败/.test(c.textContent)));
+  assert.ok(ok, '应显示「定位失败 · 点击重试」');
+  assert.equal(entry.lat, undefined, '定位失败不应留下坐标');
+});
+
+test('weather：城市名按纯文本渲染，不会被当成 HTML 解析', async () => {
+  installEnv();
+  const w = Widgets.get('weather');
+  const payload = '<img src=x onerror=alert(1)>';
+  // manual + _geoCity 与 city 一致 → 跳过地理编码，直接走「取天气 → 渲染」
+  const entry = { type: 'weather', mode: 'manual', city: 'x', unit: 'c', lat: 1, lon: 2, _geoCity: 'x', cityName: payload, w: 2 };
+  const body = makeEl();
+  w.render(body, entry, { entry, index: 0, save: async () => {}, editMode: () => false, render() {} });
+
+  const ok = await waitFor(() => body.children.some(c => c.classList.contains('weather-info')));
+  assert.ok(ok, '应渲染出 weather-info');
+  const city = body.children.find(c => c.classList.contains('weather-info')).children[0];
+  assert.equal(city.textContent, payload, '城市名应原样作为文本');
+  assert.equal(city.innerHTML, '', '城市节点不应写入 innerHTML');
+});
+
+test('history：标题按纯文本渲染（含 HTML 字符也不解析）', () => {
+  const env = installEnv();
+  env.setHistory([]);
+  const w = Widgets.get('history');
+  const body = makeEl();
+  w.render(body, { type: 'history', name: '<b>x</b>', limit: 8 }, { save: async () => {}, editMode: () => false });
+
+  const header = body.children.find(c => c.classList.contains('widget-header'));
+  const title = header.children.find(c => c.tag === 'span');
+  assert.ok(title, '标题应是独立节点');
+  assert.equal(title.textContent, '<b>x</b>', '标题应原样作为文本');
+});

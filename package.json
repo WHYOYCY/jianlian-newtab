@@ -1,6 +1,6 @@
 {
   "name": "jianlian-newtab",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "private": true,
   "description": "液态玻璃风格的新标签页扩展（Chrome / Edge，MV3）",
   "type": "module",
